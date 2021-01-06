@@ -1,0 +1,16 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+scrapy = "*"
+azure-cosmos = "*"
+python-dotenv = "*"
+js2xml = "*"
+
+[dev-packages]
+yapf = "*"
+
+[requires]
+python_version = "3.7"
