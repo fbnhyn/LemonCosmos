@@ -1,3 +1,4 @@
+import json
 import os
 from azure.cosmos import CosmosClient, PartitionKey
 from azure.cosmos.container import ContainerProxy
@@ -40,3 +41,9 @@ class CosmosService:
 
     def insert_model(self, json):
         self.models_container.create_item(json)
+
+    def get_all_makers(self):
+        for m in self.makers_container.query_items(
+                query='SELECT m.name FROM makers m',
+                enable_cross_partition_query=True):
+            yield m

@@ -15,6 +15,20 @@ def return_int(value):
 def return_bool(value):
     return True if value == 'true' else False
 
+class ModelItem(scrapy.Item):
+    id = scrapy.Field(
+        input_processor=MapCompose(w3.remove_tags),
+        output_processor=TakeFirst()
+    ) 
+    name = scrapy.Field(
+        input_processor=MapCompose(w3.remove_tags),
+        output_processor=TakeFirst()
+    )
+    makerId = scrapy.Field(
+        input_processor=MapCompose(w3.remove_tags),
+        output_processor=TakeFirst()
+    )
+
 class MakerItem(scrapy.Item):
     id = scrapy.Field(
         input_processor=MapCompose(w3.remove_tags),

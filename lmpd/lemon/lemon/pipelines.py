@@ -17,3 +17,8 @@ class MakersPipeline(CosmosPipeline):
 
     def process_item(self, item, spider):
         self.service.insert_maker(ItemAdapter(item).asdict())
+
+class ModelsPipeline(CosmosPipeline):
+
+    def process_item(self, item, spider):
+        self.service.insert_model(ItemAdapter(item).asdict())
