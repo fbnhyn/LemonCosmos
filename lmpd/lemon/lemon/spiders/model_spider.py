@@ -1,3 +1,4 @@
+from itemadapter.adapter import ItemAdapter
 import scrapy
 import lxml.etree
 import js2xml
@@ -19,10 +20,16 @@ class ModelSpider(scrapy.Spider):
         xml = lxml.etree.tostring(js2xml.parse(script), encoding='unicode')
         selector = scrapy.Selector(text=xml)
         models = selector.css('property[name="availableModelModelLines"] > array > object')
-        for model in models:
-            if (model.css('property[name="isModel"] > boolean::text').extract_first() == 'true'):
-                l = ItemLoader(item=lmpd.ModelItem(), selector=model)
+        # create result dict for updating maker with models in pipeline
+        result = {
+            'makerId': selector.css('property[name="makeId"] > string::text').extract_first(),
+            'models': []
+        }
+        for raw_model in models:
+            # only queryable models are extracted and persisted in the database
+            if (raw_model.css('property[name="isModel"] > boolean::text').extract_first() == 'true'):
+                l = ItemLoader(item=lmpd.ModelItem(), selector=raw_model)
                 l.add_css('id', 'property[name="id"] > string')
                 l.add_css('name', 'property[name="name"] > string')
-                l.add_value('makerId', selector.css('property[name="makeId"] > string::text').extract_first())
-                yield l.load_item()
+                result['models'].append(ItemAdapter(l.load_item()).asdict())
+        return result

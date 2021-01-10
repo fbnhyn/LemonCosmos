@@ -24,10 +24,6 @@ class ModelItem(scrapy.Item):
         input_processor=MapCompose(w3.remove_tags),
         output_processor=TakeFirst()
     )
-    makerId = scrapy.Field(
-        input_processor=MapCompose(w3.remove_tags),
-        output_processor=TakeFirst()
-    )
 
 class MakerItem(scrapy.Item):
     id = scrapy.Field(
