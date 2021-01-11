@@ -27,7 +27,7 @@ class ModelsPipeline(CosmosPipeline):
         scraped_models = item.get('models')
 
         for sm in scraped_models:
-            if not any(m['id'] == sm.get('id') for m in maker_models):
+            if not any(m.get('id') == sm.get('id') for m in maker_models):
                 maker_models.append(sm)
                 update_maker = True
 
