@@ -26,6 +26,9 @@ class ModelsPipeline(CosmosPipeline):
         maker_models = maker.get('models')
         scraped_models = item.get('models')
 
+        if maker_models is None:
+            maker_models = []
+
         for sm in scraped_models:
             if not any(m.get('id') == sm.get('id') for m in maker_models):
                 maker_models.append(sm)
@@ -33,7 +36,7 @@ class ModelsPipeline(CosmosPipeline):
 
         if update_maker:
             maker['models'] = maker_models
-            self.service.insert_maker_embedded_models(maker)
+            self.service.upsert_maker(maker)
             print(f"Scraped new models for maker {item.get('makerId')}")
         else:
             print(f"No new models for maker {item.get('makerId')}")

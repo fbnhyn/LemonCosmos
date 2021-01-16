@@ -1,3 +1,4 @@
+from datetime import datetime
 import json
 import os
 from azure.cosmos import CosmosClient, PartitionKey
@@ -34,13 +35,28 @@ class CosmosService:
     def insert_maker(self, json):
         self.makers_models_container.create_item(json)
 
-    def get_maker_by_id(self, makerId):
-            m = self.makers_models_container.query_items(
-                query= f'SELECT * FROM makers m WHERE m.id = "{makerId}"',
-                enable_cross_partition_query=True)
-            return next(m)
+    def upsert_maker(self, maker):
+        try:
+            self.makers_models_container.upsert_item(body=maker)
+        except:
+            print(f'error while upserting maker {maker.get("makerId")}')
 
-    def get_all_makers(self):
+    def get_maker_by_id(self, makerId):
+        makers = list(self.makers_models_container.query_items(
+            query= f'SELECT TOP 1 m FROM makers m WHERE m.id = "{makerId}"',
+            enable_cross_partition_query=True))
+        return makers[0].get('m')
+
+    def append_query_urls_to_maker(self, makerId, query_urls):
+        maker = self.get_maker_by_id(makerId)
+        if maker.get('query_urls') is None:
+            maker['query_urls'] = []
+        maker['query_urls'].append({
+            datetime.now().isoformat(): query_urls
+        })
+        self.upsert_maker(maker)
+
+    def get_all_maker_names(self):
         for m in self.makers_models_container.query_items(
                 query='SELECT m.name FROM makers m',
                 enable_cross_partition_query=True):
