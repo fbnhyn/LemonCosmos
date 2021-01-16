@@ -1,3 +1,4 @@
+import datetime
 import math
 from urllib import parse
 
@@ -16,6 +17,7 @@ class Query:
         self.price_to: int = self.__get_component_param_as_int('priceto')
         self.country: str = self.components.get('cy')
         self.offer: str = self.components.get('offer')
+        self.size: int = self.__get_component_param_as_int('size')
         self.hits: int = hits
         self.has_upper_query: bool = self.__has_upper_query()
 
@@ -23,7 +25,7 @@ class Query:
         if self.price_from is None and self.price_to is None:
             self.price_from = self.min_price
             self.price_to = self.first_price_cap
-            return self.response.urljoin(f'?offer{self.offer}&cy={self.country}&pricefrom={self.price_from}&priceto={self.price_to}')
+            return self.response.urljoin(f'?size={self.size}offer{self.offer}&cy={self.country}&pricefrom={self.price_from}&priceto={self.price_to}')
         if self.hits > self.hit_cap:
             return self.__refine_lower_query()
         return self.__refine_upper_query()
@@ -57,3 +59,8 @@ class Query:
         if price_range > 100000:
             return 4
         return 2
+
+class QueryResult:
+    urls: list
+    hits: int
+    time: datetime.datetime

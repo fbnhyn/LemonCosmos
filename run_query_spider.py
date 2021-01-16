@@ -1,3 +1,4 @@
+from datetime import datetime
 from lmpd.lemon.lemon.spiders.query_spider import QuerySpider
 from urllib.parse import quote
 
@@ -8,11 +9,12 @@ from scrapy.crawler import CrawlerRunner
 @defer.inlineCallbacks
 def crawl(limen_spider_jobs):
     for job in limen_spider_jobs:
-        # query_urls is a class variable and has to be cleared for every QuerySpider
-        QuerySpider.query_urls = []
-        QuerySpider.combind_query_counter = 0
+        QuerySpider.result.hits = 0
+        QuerySpider.result.urls = []
+        QuerySpider.result.time = datetime.now().isoformat()
         yield runner.crawl(QuerySpider, start_urls=job.get('query_urls'))
-        service.append_query_urls_to_maker(job.get('makerId'), QuerySpider.query_urls)
+        service.append_query_result_to_maker(job.get('makerId'), QuerySpider.result)
+        print()
     reactor.stop()
 
 runner = CrawlerRunner()
@@ -27,7 +29,7 @@ for mid in makerIds:
     for m in maker.get('models'):
 
         for c in ['A', 'B', 'D', 'E', 'F', 'I', 'L', 'NL']:
-            query_urls.append(f'https://www.autoscout24.de/lst/{quote(maker.get("name"))}/{quote(m.get("name"))}?offer=U,u&cy={c}')
+            query_urls.append(f'https://www.autoscout24.de/lst/{quote(maker.get("name"))}/{quote(m.get("name"))}?size=20offer=U,u&cy={c}')
 
     lemon_spider_jobs.append({
         'makerId': mid,

@@ -1,5 +1,6 @@
 from datetime import datetime
 import json
+from lmpd.lemon.lemon.models import QueryResult
 import os
 from azure.cosmos import CosmosClient, PartitionKey
 from azure.cosmos.container import ContainerProxy
@@ -47,12 +48,14 @@ class CosmosService:
             enable_cross_partition_query=True))
         return makers[0].get('m')
 
-    def append_query_urls_to_maker(self, makerId, query_urls):
+    def append_query_result_to_maker(self, makerId, query_result: QueryResult):
         maker = self.get_maker_by_id(makerId)
-        if maker.get('query_urls') is None:
-            maker['query_urls'] = []
-        maker['query_urls'].append({
-            datetime.now().isoformat(): query_urls
+        if maker.get('query_results') is None:
+            maker['query_results'] = []
+        maker['query_results'].append({
+            'hits': query_result.hits,
+            'urls': query_result.urls,
+            'time': query_result.time
         })
         self.upsert_maker(maker)
 
