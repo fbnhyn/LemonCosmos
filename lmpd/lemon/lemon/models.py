@@ -3,6 +3,7 @@ import math
 from urllib import parse
 
 import scrapy.http
+import sys
 
 class Query:
     max_price = 999999999
@@ -12,46 +13,44 @@ class Query:
     
     def __init__(self, response: scrapy.http.Response, hits: int):
         self.response:scrapy.http.Response = response
-        self.components = dict(parse.parse_qsl(parse.urlsplit(response.url).query))
-        self.price_from: int = self.__get_component_param_as_int('pricefrom')
-        self.price_to: int = self.__get_component_param_as_int('priceto')
-        self.country: str = self.components.get('cy')
-        self.offer: str = self.components.get('offer')
-        self.size: int = self.__get_component_param_as_int('size')
+        self.parsed_url = parse.urlparse(response.url)
+        self.query = parse.parse_qs(self.parsed_url.query)
+        self.price_from: int = int(self.query.get('pricefrom')[0]) if self.query.get('pricefrom') is not None else None
+        self.price_to: int = int(self.query.get('priceto')[0]) if self.query.get('priceto') is not None else None
         self.hits: int = hits
-        self.has_upper_query: bool = self.__has_upper_query()
 
     def refine_query(self):
         if self.price_from is None and self.price_to is None:
-            self.price_from = self.min_price
-            self.price_to = self.first_price_cap
-            return self.response.urljoin(f'?size={self.size}offer{self.offer}&cy={self.country}&pricefrom={self.price_from}&priceto={self.price_to}')
+            self.query['pricefrom'] = [str(self.min_price)]
+            self.query['priceto'] = [str(self.first_price_cap)]
+            return self.__compose_new_url()
         if self.hits > self.hit_cap:
             return self.__refine_lower_query()
         return self.__refine_upper_query()
 
-    def __has_upper_query(self):
-        return False if self.price_to is None or self.price_to == self.max_price else True
-
-    def __replace_param_in_url(self, url, param, old_value, new_value):
-        return url.replace(f'{param}={old_value}', f'{param}={new_value}')
+    def has_upper_query(self):
+        if self.price_to is None and self.hits <= 200:
+            return False
+        if self.price_to == self.max_price:
+            return False
+        return True
 
     def __refine_lower_query(self):
-        price_range = self.price_to - self.price_from
-        divider = self.__get_divider(price_range)
-        new_price_to = math.floor((self.price_from + self.price_to) / divider)
-        return self.__replace_param_in_url(self.response.url, 'priceto', self.price_to, new_price_to)
+        if self.price_to is None:
+            self.query['priceto'] = ['100000']
+        else:
+            price_range = self.price_to - self.price_from
+            divider = self.__get_divider(price_range)
+            self.query['priceto'] = [str(math.floor((self.price_from + self.price_to) / divider))]
+        return self.__compose_new_url()
 
     def __refine_upper_query(self):
-        new_price_from = self.price_to + 1
-        new_price_to = self.max_price
-        new_url = self.__replace_param_in_url(self.response.url, 'pricefrom', self.price_from, new_price_from)
-        new_url = self.__replace_param_in_url(new_url, 'priceto', self.price_to, new_price_to)
-        return new_url
-
-    def __get_component_param_as_int(self, param: str):
-        query_param = self.components.get(param)
-        return None if query_param is None else int(query_param)
+        if self.price_to is None:
+            self.query['pricefrom'] = [str(self.price_from * 5)]
+        else:
+            self.query['pricefrom'] = [str(self.price_to + 1)]
+            self.query.pop('priceto')
+        return self.__compose_new_url()
 
     def __get_divider(self, price_range: int):
         if price_range > 500000:
@@ -59,6 +58,10 @@ class Query:
         if price_range > 100000:
             return 4
         return 2
+
+    def __compose_new_url(self):
+        self.parsed_url = self.parsed_url._replace(query=parse.urlencode(self.query, doseq=True))
+        return parse.urlunparse(self.parsed_url)
 
 class QueryResult:
     urls: list

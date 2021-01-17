@@ -8,6 +8,7 @@ scrapy = "*"
 azure-cosmos = "*"
 python-dotenv = "*"
 js2xml = "*"
+coverage = "*"
 
 [dev-packages]
 yapf = "*"
