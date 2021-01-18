@@ -9,7 +9,7 @@ class Query:
     max_price = 999999999
     min_price = 0
     first_price_cap = 12500
-    hit_cap = 200
+    hit_cap = 400
     
     def __init__(self, response: scrapy.http.Response, hits: int):
         self.response:scrapy.http.Response = response
@@ -37,7 +37,10 @@ class Query:
 
     def __refine_lower_query(self):
         if self.price_to is None:
-            self.query['priceto'] = ['100000']
+            if self.price_from is not None:
+                self.query['priceto'] = [str(self.price_from * 5)]
+            else:
+                self.query['priceto'] = ['100000']
         else:
             price_range = self.price_to - self.price_from
             divider = self.__get_divider(price_range)

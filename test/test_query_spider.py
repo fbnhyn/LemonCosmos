@@ -9,14 +9,14 @@ class TestQuerySpider(unittest.TestCase):
     
     def test_add_price_range_to_url(self):
         response = scrapy.http.Response(url="https://www.autoscout24.de/lst/maker/model?cy=D")
-        query = Query(response, 400)
+        query = Query(response, 800)
         refined_url = query.refine_query()
         self.assertTrue("priceto" in refined_url)
         self.assertTrue("pricefrom" in refined_url)
 
     def test_refine_lower_query(self):
         response = scrapy.http.Response(url="https://www.autoscout24.de/lst/maker/model?cy=D&pricefrom=200&priceto=1000")
-        query = Query(response, 400)
+        query = Query(response, 800)
         refined_url = query.refine_query()
         self.assertTrue("priceto=600" in refined_url)
         self.assertTrue("?cy=D" in refined_url)
