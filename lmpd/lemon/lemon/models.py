@@ -1,4 +1,4 @@
-import datetime
+from datetime import datetime
 import math
 from urllib import parse
 
@@ -69,4 +69,4 @@ class Query:
 class QueryResult:
     urls: list
     hits: int
-    time: datetime.datetime
+    time: datetime
