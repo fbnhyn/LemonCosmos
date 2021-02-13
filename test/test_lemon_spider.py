@@ -17,8 +17,8 @@ class TestLemonSpider(unittest.TestCase):
 
     def test_parse_lemon(self):
         result = self.spider.parse_lemon(self.response)
-        for r in result:
-            pprint(r)
+        lemon =  next(result)
+        pprint(lemon)
 
 if __name__ == '__main__':
     unittest.main()
