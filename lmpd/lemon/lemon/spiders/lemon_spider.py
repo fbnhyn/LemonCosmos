@@ -1,5 +1,5 @@
 from datetime import datetime
-from lmpd.lemon.lemon.items import AdressItem, LemonItem
+from lmpd.lemon.lemon.items import AdressItem, EmissionItem, LemonItem
 from scrapy.spiders import CrawlSpider, Rule
 from scrapy.linkextractors import LinkExtractor
 from scrapy.loader import ItemLoader
@@ -16,7 +16,7 @@ class LemonSpider(CrawlSpider):
         if (response.css('.cldt-item[data-item-name="car-details"]')):
             l = ItemLoader(item=LemonItem(), selector=response)
             l.add_css('id', "[as24-tracking-value*='classified_productGuid']::attr('as24-tracking-value')")
-            l.add_css('origin', "[as24-tracking-value*='classified_oigin']::attr('as24-tracking-value')")
+            l.add_css('origin', "[as24-tracking-value*='classified_origin']::attr('as24-tracking-value')")
             l.add_css('fuel_type', "[as24-tracking-value*='fuel_type']::attr('as24-tracking-value')")
             l.add_css('makeId', "[as24-tracking-value*='classified_makeId']::attr('as24-tracking-value')")
             l.add_css('makeName', "[as24-tracking-value*='classified_makeTxt']::attr('as24-tracking-value')")
@@ -28,6 +28,13 @@ class LemonSpider(CrawlSpider):
             l.add_css('segment', "[as24-tracking-value*='classified_carSegment']::attr('as24-tracking-value')")
             l.add_css('year', "[as24-tracking-value*='classified_year']::attr('as24-tracking-value')")
             l.add_css('milage', "[as24-tracking-value*='classified_mileage']::attr('as24-tracking-value')")
+            l.add_css('equipment_codes', "[as24-tracking-value*='classified_equipment']::attr('as24-tracking-value')")
+            l.add_css('doors', "[as24-tracking-value*='classified_doors']::attr('as24-tracking-value')")
+            l.add_css('seats', "[as24-tracking-value*='classified_seats']::attr('as24-tracking-value')")
+            l.add_css('consumption', "[as24-tracking-value*='classified_consumption']::attr('as24-tracking-value')")
+            l.add_css('capacity', "[as24-tracking-value*='classified_capacity']::attr('as24-tracking-value')")
+            l.add_css('is_superdeal', "[as24-tracking-value*='classified_superDealVehicle']::attr('as24-tracking-value')")
+            l.add_value('emissions', self.parse_emssions(response))
             l.add_value('adress', self.parse_adress(response))
             l.add_value('crawled', datetime.now().time())
             yield l.load_item()
@@ -38,3 +45,9 @@ class LemonSpider(CrawlSpider):
         a.add_css('area_code', "[as24-tracking-value*='classified_zipcode']::attr('as24-tracking-value')")
         a.add_css('country', "[as24-tracking-value*='classified_country']::attr('as24-tracking-value')")
         return a.load_item()
+
+    def parse_emssions(self, response):
+        e = ItemLoader(item=EmissionItem(), selector=response)
+        e.add_css('co2', "[as24-tracking-value*='classified_emission\":']::attr('as24-tracking-value')")
+        e.add_css('standard', "[as24-tracking-value*='classified_emissionStandard']::attr('as24-tracking-value')")
+        return e.load_item()

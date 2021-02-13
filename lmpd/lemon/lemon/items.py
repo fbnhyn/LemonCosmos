@@ -10,18 +10,24 @@ from datetime import datetime
 from itemloaders.processors import TakeFirst, MapCompose
 import w3lib.html as w3
 
-def return_int(value):
+def return_int(value: str):
     return int(value)
 
-def return_bool(value):
+def return_float(value: str):
+    return float(value)
+
+def return_bool(value: str):
     return True if value == 'true' else False
 
-def return_dict_value(value):
+def return_dict_value(value: str):
     _d = json.loads(value)
     return _d.values()
 
-def return_only_letters(value):
+def return_only_letters(value: str):
     return re.sub(r'\d+\s', '', value)
+
+def return_list_from_string(value: str):
+    return value.split(',')
 
 class ModelItem(scrapy.Item):
     id = scrapy.Field(
@@ -66,16 +72,38 @@ class PriceRangeItem(scrapy.Item):
     end = scrapy.Field()
 
 class PriceLabelRangesItem(scrapy.Item):
-    top = scrapy.Field(serializer=PriceRangeItem)
-    good = scrapy.Field(serializer=PriceRangeItem)
-    fair = scrapy.Field(serializer=PriceRangeItem)
-    somewhat = scrapy.Field(serializer=PriceRangeItem)
-    expensiv = scrapy.Field(serializer=PriceRangeItem)
+    top = scrapy.Field(
+        serializer=PriceRangeItem,
+        output_processor=TakeFirst()
+    )
+    good = scrapy.Field(
+        serializer=PriceRangeItem,
+        output_processor=TakeFirst()
+    )
+    fair = scrapy.Field(
+        serializer=PriceRangeItem,
+        output_processor=TakeFirst()
+    )
+    somewhat = scrapy.Field(
+        serializer=PriceRangeItem,
+        output_processor=TakeFirst()
+    )
+    expensiv = scrapy.Field(
+        serializer=PriceRangeItem,
+        output_processor=TakeFirst()
+    )
 
 class EmissionItem(scrapy.Item):
-    co2 = scrapy.Field()
     eclass = scrapy.Field()
     label = scrapy.Field()
+    co2 = scrapy.Field(
+        input_processor=MapCompose(return_dict_value, return_float),
+        output_processor=TakeFirst()
+    )
+    standard = scrapy.Field(
+        input_processor=MapCompose(return_dict_value, return_int),
+        output_processor=TakeFirst()
+    )
 
 class ConsumptionItem(scrapy.Item):
     combined: scrapy.Field()
@@ -95,6 +123,10 @@ class LemonItem(scrapy.Item):
     crawled = scrapy.Field(
         output_processor=TakeFirst()
     )
+    is_superdeal =  scrapy.Field(
+        input_processor=MapCompose(return_dict_value, return_bool),
+        output_processor=TakeFirst()
+    )
 
     # Pricinginformation
     price = scrapy.Field(
@@ -102,7 +134,10 @@ class LemonItem(scrapy.Item):
         output_processor=TakeFirst()
     )
     price_label = scrapy.Field()
-    price_label_ranges = scrapy.Field(serializer=PriceLabelRangesItem)
+    price_label_ranges = scrapy.Field(
+        serializer=PriceLabelRangesItem,
+        output_processor=TakeFirst()
+    )
 
     # Overview
     description = scrapy.Field(),
@@ -165,6 +200,18 @@ class LemonItem(scrapy.Item):
         output_processor=TakeFirst()
     )
     country_version = scrapy.Field()
+    equipment_codes = scrapy.Field(
+        input_processor=MapCompose(return_dict_value, return_list_from_string)
+    )
+    # Zustand
+    origin = scrapy.Field(
+        input_processor=MapCompose(return_dict_value),
+        output_processor=TakeFirst()
+    )
+    capacity = scrapy.Field(
+        input_processor=MapCompose(return_dict_value),
+        output_processor=TakeFirst()
+    )
 
     # State
     state_type = scrapy.Field() # condition of the lemon
@@ -176,13 +223,19 @@ class LemonItem(scrapy.Item):
 
     # Drive
     fuels = scrapy.Field() # array
-    consumption = scrapy.Field()
+    consumption = scrapy.Field(
+        input_processor=MapCompose(return_dict_value, return_float),
+        output_processor=TakeFirst()
+    )
     drive_chain = scrapy.Field()
     gears = scrapy.Field()
     displacement = scrapy.Field()
     cylinders = scrapy.Field()
     weight = scrapy.Field()
-    emission = scrapy.Field(serializer=EmissionItem)
+    emissions = scrapy.Field(
+        serializer=EmissionItem,
+        output_processor=TakeFirst()
+    )
 
     # Regional Information
     adress =  scrapy.Field(
