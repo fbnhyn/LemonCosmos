@@ -3,6 +3,7 @@
 # See documentation in:
 # https://docs.scrapy.org/en/latest/topics/items.html
 
+from attr import set_run_validators
 import scrapy
 import json
 import re
@@ -11,7 +12,8 @@ from itemloaders.processors import TakeFirst, MapCompose
 import w3lib.html as w3
 
 def return_int(value: str):
-    return int(value)
+    if (value):
+        return int(value)
 
 def return_float(value: str):
     return float(value)
@@ -24,10 +26,30 @@ def return_dict_value(value: str):
     return _d.values()
 
 def return_only_letters(value: str):
-    return re.sub(r'\d+\s', '', value)
+    return re.sub(r'\d+\s', '', value).strip()
+
+def return_only_digits(value: str): 
+    return re.sub(r'\D', '',  value)
 
 def return_list_from_string(value: str):
     return value.split(',')
+
+def string_before_dash(value: str):
+    return value.split()[0]
+
+def string_after_dash(value: str):
+    return value.split()[-1]
+
+
+class EquipmentItem(scrapy.Item): 
+    id = scrapy.Field(
+        input_processor=MapCompose(w3.remove_tags, return_only_digits, return_int),
+        output_processor=TakeFirst()
+    ) 
+    name = scrapy.Field(
+        input_processor=MapCompose(w3.remove_tags),
+        output_processor=TakeFirst()
+    )
 
 class ModelItem(scrapy.Item):
     id = scrapy.Field(
@@ -68,8 +90,14 @@ class AdressItem(scrapy.Item):
     )
 
 class PriceRangeItem(scrapy.Item):
-    start = scrapy.Field()
-    end = scrapy.Field()
+    start = scrapy.Field(
+        input_processor=MapCompose(w3.remove_tags, string_before_dash, return_only_digits, return_int),
+        output_processor=TakeFirst()
+    )
+    end = scrapy.Field(
+        input_processor=MapCompose(w3.remove_tags, string_after_dash, return_only_digits, return_int),
+        output_processor=TakeFirst()
+    )
 
 class PriceLabelRangesItem(scrapy.Item):
     top = scrapy.Field(
@@ -133,7 +161,10 @@ class LemonItem(scrapy.Item):
         input_processor=MapCompose(return_dict_value, return_int),
         output_processor=TakeFirst()
     )
-    price_label = scrapy.Field()
+    price_label = scrapy.Field(
+        input_processor=MapCompose(return_dict_value),
+        output_processor=TakeFirst()
+    )
     price_label_ranges = scrapy.Field(
         serializer=PriceLabelRangesItem,
         output_processor=TakeFirst()
@@ -208,8 +239,9 @@ class LemonItem(scrapy.Item):
         input_processor=MapCompose(return_dict_value),
         output_processor=TakeFirst()
     )
+    # Hubraum
     capacity = scrapy.Field(
-        input_processor=MapCompose(return_dict_value),
+        input_processor=MapCompose(return_dict_value, return_int),
         output_processor=TakeFirst()
     )
 
@@ -244,10 +276,9 @@ class LemonItem(scrapy.Item):
     )
 
     # Equipment
-    comfort = scrapy.Field() # array
-    entertainment = scrapy.Field() # array
-    safety = scrapy.Field() # array
-    extras = scrapy.Field() # array
+    equipment = scrapy.Field(
+        input_processor=MapCompose(w3.remove_tags)
+    )
 
     # Autoscout24 Ad Targeting
     ad_targeting = scrapy.Field() # response.css("s24-ad-targeting")[1] // save as json
