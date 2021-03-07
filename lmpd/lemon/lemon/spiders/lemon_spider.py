@@ -53,6 +53,7 @@ class LemonSpider(CrawlSpider):
             l.add_value('fuel_types', self.parse_fuel_types(response))
             l.add_value('emissions', self.parse_emissions(response))
             l.add_value('consumption', self.parse_consumption(response))
+            l.add_value('cylinders', self.parse_cylinders(response))
             l.add_value('adress', self.parse_adress(response))
             l.add_value('crawled', datetime.now().time())
             l.add_value('url', response.url)
@@ -74,7 +75,7 @@ class LemonSpider(CrawlSpider):
 
     def parse_consumption(self, response):
         c = ItemLoader(item=ConsumptionItem(), selector=response)
-        c.add_css('classified', "[as24-tracking-value*='classified_consumption']::attr('as24-tracking-value')")
+        c.add_css('combined', "[as24-tracking-value*='classified_consumption']::attr('as24-tracking-value')")
         c.add_value('electric', self.parse_electric_consumption(response))
         return c.load_item()
 
@@ -150,3 +151,8 @@ class LemonSpider(CrawlSpider):
         weight = response.xpath('//dt[. = "Leergewicht"]')
         if (weight):
             return response.xpath('//dt[. = "Leergewicht"]/following-sibling::dd[1]/text()').extract_first().strip()
+
+    def parse_cylinders(self, response):
+        weight = response.xpath('//dt[. = "Zylinder"]')
+        if (weight):
+            return response.xpath('//dt[. = "Zylinder"]/following-sibling::dd[1]').extract_first()

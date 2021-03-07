@@ -127,6 +127,7 @@ class PriceLabelRangesItem(scrapy.Item):
 class EmissionItem(scrapy.Item):
     eclass = scrapy.Field()
     label = scrapy.Field(
+        input_processor=MapCompose(return_only_digits, return_int),
         output_processor=TakeFirst()
     )
     co2 = scrapy.Field(
@@ -139,13 +140,7 @@ class EmissionItem(scrapy.Item):
     )
 
 class ConsumptionItem(scrapy.Item):
-    combined = scrapy.Field()
-
-    city = scrapy.Field()
-
-    country = scrapy.Field()
-
-    classified = scrapy.Field(
+    combined = scrapy.Field(
         input_processor=MapCompose(return_dict_value, return_float),
         output_processor=TakeFirst()
     )    
@@ -305,7 +300,9 @@ class LemonItem(scrapy.Item):
     #endregion
 
     #region Drive
-    fuel_types = scrapy.Field()
+    fuel_types = scrapy.Field(
+        input_processor=MapCompose(str.strip),
+    )
 
     consumption = scrapy.Field(
         serializer=ConsumptionItem,
@@ -322,11 +319,16 @@ class LemonItem(scrapy.Item):
         output_processor=TakeFirst()
     )
 
-    gears = scrapy.Field()
+    gears = scrapy.Field(
+        output_processor=TakeFirst()
+    )
 
     displacement = scrapy.Field()
 
-    cylinders = scrapy.Field()
+    cylinders = scrapy.Field(
+        input_processor=MapCompose(w3.remove_tags, str.strip, return_int),
+        output_processor=TakeFirst()
+    )
 
     # kg
     weight = scrapy.Field(
