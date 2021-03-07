@@ -64,5 +64,16 @@ class TestLemonSpider(unittest.TestCase):
         lemon =  next(result)
         pprint(lemon)
 
+    def test_parse_smart_fortwo(self):
+        self.response = TextResponse(
+            url='www.lemonunittest.de',
+            body=open(f'tmp\\smart.fortwo.htm', encoding='utf-8').read(),
+            encoding = 'utf-8'
+        )
+
+        result = self.spider.parse_lemon(self.response)
+        lemon =  next(result)
+        pprint(lemon)
+
 if __name__ == '__main__':
     unittest.main()
