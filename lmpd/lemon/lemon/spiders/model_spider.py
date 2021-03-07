@@ -23,7 +23,7 @@ class ModelSpider(scrapy.Spider):
         # create result dict containing all models for one maker
         # in order to be able to update the maker later, the makerid must be part of the result dict
         result = {
-            'makerId': selector.css('property[name="makeId"] > string::text').extract_first(),
+            'maker_id': selector.css('property[name="makeId"] > string::text').extract_first(),
             'models': []
         }
         for raw_model in models:

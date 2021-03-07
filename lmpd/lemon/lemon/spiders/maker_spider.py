@@ -24,5 +24,5 @@ class MakerSpider(scrapy.Spider):
             l = ItemLoader(item=lmpd.MakerItem(), selector=maker)
             l.add_css('id', 'property[name="id"] > string')
             l.add_css('name', 'property[name="label"] > string')
-            l.add_css('isTop', 'boolean')
+            l.add_css('is_top', 'boolean')
             yield l.load_item()
