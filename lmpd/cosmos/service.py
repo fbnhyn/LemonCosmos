@@ -64,3 +64,9 @@ class CosmosService:
                 query='SELECT m.name FROM makers m',
                 enable_cross_partition_query=True):
             yield m
+
+    def get_all_makers(self):
+        for m in self.makers_models_container.query_items(
+                query='SELECT * FROM makers m',
+                enable_cross_partition_query=True):
+            yield m
