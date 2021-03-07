@@ -22,7 +22,7 @@ class ModelsPipeline(CosmosPipeline):
 
     def process_item(self, item, spider):
         update_maker = False
-        maker = self.service.get_maker_by_id(item.get('makerId'))
+        maker = self.service.get_maker_by_id(item.get('maker_id'))
         maker_models = maker.get('models')
         scraped_models = item.get('models')
 
@@ -37,6 +37,6 @@ class ModelsPipeline(CosmosPipeline):
         if update_maker:
             maker['models'] = maker_models
             self.service.upsert_maker(maker)
-            print(f"Scraped new models for maker {item.get('makerId')}")
+            print(f"Scraped new models for maker {item.get('maker_id')}")
         else:
-            print(f"No new models for maker {item.get('makerId')}")
+            print(f"No new models for maker {item.get('maker_id')}")
