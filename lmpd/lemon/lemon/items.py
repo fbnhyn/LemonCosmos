@@ -73,7 +73,7 @@ class MakerItem(scrapy.Item):
         input_processor=MapCompose(w3.remove_tags),
         output_processor=TakeFirst()
     )
-    isTop = scrapy.Field(
+    is_top = scrapy.Field(
         input_processor=MapCompose(w3.remove_tags, return_bool),
         output_processor=TakeFirst()
     )
