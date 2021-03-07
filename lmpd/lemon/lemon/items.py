@@ -40,6 +40,9 @@ def string_before_dash(value: str):
 def string_after_dash(value: str):
     return value.split()[-1]
 
+def string_year_to_date(value: str):
+    return datetime.strptime(value, '%Y')
+
 
 class EquipmentItem(scrapy.Item): 
     id = scrapy.Field(
@@ -123,7 +126,9 @@ class PriceLabelRangesItem(scrapy.Item):
 
 class EmissionItem(scrapy.Item):
     eclass = scrapy.Field()
-    label = scrapy.Field()
+    label = scrapy.Field(
+        output_processor=TakeFirst()
+    )
     co2 = scrapy.Field(
         input_processor=MapCompose(return_dict_value, return_float),
         output_processor=TakeFirst()
@@ -134,12 +139,23 @@ class EmissionItem(scrapy.Item):
     )
 
 class ConsumptionItem(scrapy.Item):
-    combined: scrapy.Field()
-    city: scrapy.Field()
-    country: scrapy.Field()
+    combined = scrapy.Field()
+
+    city = scrapy.Field()
+
+    country = scrapy.Field()
+
+    classified = scrapy.Field(
+        input_processor=MapCompose(return_dict_value, return_float),
+        output_processor=TakeFirst()
+    )    
+
+    electric = scrapy.Field(
+        output_processor=TakeFirst()
+    )
 
 class LemonItem(scrapy.Item):
-    # Meta
+    #region Meta
     id = scrapy.Field(
         input_processor=MapCompose(return_dict_value),
         output_processor=TakeFirst()
@@ -151,12 +167,16 @@ class LemonItem(scrapy.Item):
     crawled = scrapy.Field(
         output_processor=TakeFirst()
     )
-    is_superdeal =  scrapy.Field(
+    is_superdeal = scrapy.Field(
         input_processor=MapCompose(return_dict_value, return_bool),
         output_processor=TakeFirst()
     )
+    url = scrapy.Field(
+        output_processor=TakeFirst()
+    )
+    #endregion
 
-    # Pricinginformation
+    #region Price
     price = scrapy.Field(
         input_processor=MapCompose(return_dict_value, return_int),
         output_processor=TakeFirst()
@@ -169,59 +189,80 @@ class LemonItem(scrapy.Item):
         serializer=PriceLabelRangesItem,
         output_processor=TakeFirst()
     )
+    #endregion
 
-    # Overview
-    description = scrapy.Field(),
+    #region Overview
+    description = scrapy.Field(
+        input_processor=MapCompose(w3.remove_tags),
+        output_processor=TakeFirst()
+    )
+
     milage = scrapy.Field(
         input_processor=MapCompose(return_dict_value, return_int),
         output_processor=TakeFirst()
     )
+
     offer_type = scrapy.Field(
         input_processor=MapCompose(return_dict_value),
         output_processor=TakeFirst()
     )
-    first_registration = scrapy.Field()
+
+    # first registration
     year = scrapy.Field(
-        input_processor=MapCompose(return_dict_value),
+        input_processor=MapCompose(return_dict_value, string_year_to_date),
         output_processor=TakeFirst()
     )
-    pre_owners = scrapy.Field()
+
+    pre_owners = scrapy.Field(
+        input_processor=MapCompose(return_dict_value, return_int),
+        output_processor=TakeFirst()
+    )
+
     power = scrapy.Field(
         input_processor=MapCompose(return_dict_value, return_int),
         output_processor=TakeFirst()
     )
+
     engine_type = scrapy.Field()
+
     fuel_type = scrapy.Field(
         input_processor=MapCompose(return_dict_value),
         output_processor=TakeFirst()
     )
-    highlights = scrapy.Field()
+    #endregion
 
     # Properties
-    makeId = scrapy.Field(
+    make_id = scrapy.Field(
         input_processor=MapCompose(return_dict_value),
         output_processor=TakeFirst()
     )
-    makeName =scrapy.Field(
+    make_name =scrapy.Field(
         input_processor=MapCompose(return_dict_value),
         output_processor=TakeFirst()
     )
-    modelId = scrapy.Field(
+    model_id = scrapy.Field(
         input_processor=MapCompose(return_dict_value),
         output_processor=TakeFirst()
     )
-    modelName = scrapy.Field(
+    model_name = scrapy.Field(
         input_processor=MapCompose(return_dict_value),
         output_processor=TakeFirst()
     )
     segment = scrapy.Field(
-        input_processor=MapCompose(return_dict_value),
+        input_processor=MapCompose(return_dict_value, return_list_from_string),
+    )
+    body = scrapy.Field(
         output_processor=TakeFirst()
     )
-    color = scrapy.Field()
-    paint_type = scrapy.Field()
-    upholstery = scrapy.Field() # array
-    body = scrapy.Field() # array
+    color = scrapy.Field(
+        output_processor=TakeFirst()
+    )
+    paint_type = scrapy.Field(
+        output_processor=TakeFirst()
+    )
+    upholstery = scrapy.Field(
+        input_processor=MapCompose(return_only_letters),
+    )
     doors = scrapy.Field(
         input_processor=MapCompose(return_dict_value, return_int),
         output_processor=TakeFirst()
@@ -231,43 +272,73 @@ class LemonItem(scrapy.Item):
         output_processor=TakeFirst()
     )
     country_version = scrapy.Field()
-    equipment_codes = scrapy.Field(
-        input_processor=MapCompose(return_dict_value, return_list_from_string)
-    )
+
     # Zustand
     origin = scrapy.Field(
         input_processor=MapCompose(return_dict_value),
         output_processor=TakeFirst()
     )
-    # Hubraum
+
+    # Hubraum (cm3)
     capacity = scrapy.Field(
         input_processor=MapCompose(return_dict_value, return_int),
         output_processor=TakeFirst()
     )
 
-    # State
-    state_type = scrapy.Field() # condition of the lemon
-    hu_check = scrapy.Field()
-    smoke_free = scrapy.Field()
-    warranty = scrapy.Field()
-    full_service = scrapy.Field()
-    new_inspection = scrapy.Field()
-
-    # Drive
-    fuels = scrapy.Field() # array
-    consumption = scrapy.Field(
-        input_processor=MapCompose(return_dict_value, return_float),
+    #region State
+    lemon_condition = scrapy.Field(
         output_processor=TakeFirst()
     )
-    drive_chain = scrapy.Field()
+    next_inspection = scrapy.Field(
+        output_processor=TakeFirst()
+    )
+    fully_inspected = scrapy.Field(
+        output_processor=TakeFirst()
+    )
+    smoke_free = scrapy.Field(
+        output_processor=TakeFirst()
+    )
+    fullservice = scrapy.Field(
+        output_processor=TakeFirst()
+    )
+    warranty = scrapy.Field()
+    #endregion
+
+    #region Drive
+    fuel_types = scrapy.Field()
+
+    consumption = scrapy.Field(
+        serializer=ConsumptionItem,
+        output_processor=TakeFirst()
+    )
+
+    # Antriebsart
+    drive_chain = scrapy.Field(
+        output_processor=TakeFirst()
+    )
+
+    transmission = scrapy.Field(
+        input_processor=MapCompose(return_dict_value),
+        output_processor=TakeFirst()
+    )
+
     gears = scrapy.Field()
+
     displacement = scrapy.Field()
+
     cylinders = scrapy.Field()
-    weight = scrapy.Field()
+
+    # kg
+    weight = scrapy.Field(
+        input_processor=MapCompose(return_only_digits, return_int),
+        output_processor=TakeFirst()
+    )
+
     emissions = scrapy.Field(
         serializer=EmissionItem,
         output_processor=TakeFirst()
     )
+    #endregion
 
     # Regional Information
     adress =  scrapy.Field(
@@ -275,10 +346,15 @@ class LemonItem(scrapy.Item):
         output_processor=TakeFirst()
     )
 
-    # Equipment
+    #region Equipment
     equipment = scrapy.Field(
         input_processor=MapCompose(w3.remove_tags)
     )
+
+    equipment_codes = scrapy.Field(
+        input_processor=MapCompose(return_dict_value, return_list_from_string)
+    )
+    #endregion
 
     # Autoscout24 Ad Targeting
     ad_targeting = scrapy.Field() # response.css("s24-ad-targeting")[1] // save as json
