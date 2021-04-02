@@ -26,9 +26,26 @@ countries = [
     'NL' # Niederlande
 ]
 
+def run():
+    service = CosmosService()
+    makers = list(service.get_all_makers())
+
+    runner = CrawlerRunner()
+    lemon_spider_jobs = []
+
+    for maker in any(m.get('id') == "74" for m in makers):
+        lemon_spider_jobs.append({
+            'maker_id': maker.get('id'),
+            'maker': maker.get('name'),
+            'query_urls': build_start_urls(maker)
+        })
+
+    crawl(lemon_spider_jobs, runner, service)
+    reactor.run()
+
 @defer.inlineCallbacks
-def crawl(limen_spider_jobs):
-    for job in limen_spider_jobs:
+def crawl(lemon_spider_jobs, runner: CrawlerRunner, service: CosmosService):
+    for job in lemon_spider_jobs:
         print(f'### {job.get("maker")} ###')
         QuerySpider.result.hits = 0
         QuerySpider.result.urls = []
@@ -41,7 +58,6 @@ def crawl(limen_spider_jobs):
 def build_start_urls(maker):
     urls = []
     for m in maker.get('models'):
-        # if query_by_county:
         if maker.get('is_top'):
             for c in countries:
                 urls.append(f'https://www.autoscout24.de/lst/{quote(maker.get("name"))}/{quote(m.get("name"))}?size=20&offer={",".join(offer_types)}&cy={c}')
@@ -49,20 +65,4 @@ def build_start_urls(maker):
             urls.append(f'https://www.autoscout24.de/lst/{quote(maker.get("name"))}/{quote(m.get("name"))}?size=20&offer={",".join(offer_types)}')
     return urls
 
-service = CosmosService()
-makers = list(service.get_all_makers())
-
-runner = CrawlerRunner()
-lemon_spider_jobs = []
-
-m = service.get_maker_by_id("74")
-
-for maker in [m]:
-    lemon_spider_jobs.append({
-        'maker_id': maker.get('id'),
-        'maker': maker.get('name'),
-        'query_urls': build_start_urls(m)
-    })
-
-crawl(lemon_spider_jobs)
-reactor.run()
+if __name__ == '__main__': run()
