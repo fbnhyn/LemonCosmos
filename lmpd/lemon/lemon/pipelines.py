@@ -4,6 +4,7 @@
 # See: https://docs.scrapy.org/en/latest/topics/item-pipeline.html
 from itemadapter import ItemAdapter
 from lmpd.cosmos.service import CosmosService
+from azure.cosmos.exceptions import CosmosResourceExistsError
 
 class CosmosPipeline():
     service = CosmosService()
@@ -16,7 +17,10 @@ class LemonPipeline(CosmosPipeline):
 class MakersPipeline(CosmosPipeline):
 
     def process_item(self, item, spider):
-        self.service.insert_maker(ItemAdapter(item).asdict())
+        try:
+            self.service.insert_maker(ItemAdapter(item).asdict())
+        except CosmosResourceExistsError:
+            print(f'Maker {item.get("name")} with id {item.get("id")} already exists')
 
 class ModelsPipeline(CosmosPipeline):
 
