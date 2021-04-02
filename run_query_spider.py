@@ -33,10 +33,10 @@ def run():
     runner = CrawlerRunner()
     query_jobs = []
 
-    m = service.get_maker_by_id("27")
+    # m = service.get_maker_by_id("51817")
+    # for maker in [m]:
 
-    for maker in [m]:
-    # for maker in makers:
+    for maker in makers:
         query_jobs.append({
             'maker_id': maker.get('id'),
             'maker': maker.get('name'),
@@ -47,8 +47,8 @@ def run():
     reactor.run()
 
 @defer.inlineCallbacks
-def crawl(lemon_spider_jobs, runner: CrawlerRunner, service: CosmosService):
-    for job in lemon_spider_jobs:
+def crawl(query_jobs, runner: CrawlerRunner, service: CosmosService):
+    for job in query_jobs:
         print(f'### {job.get("maker")} ###')
         QuerySpider.result.hits = 0
         QuerySpider.result.urls = []
