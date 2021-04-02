@@ -15,8 +15,9 @@ class QuerySpider(scrapy.Spider):
             self.logger.info(response.url)
             query = models.Query(response, self.parse_query_result(response))
             print(f'{query.hits}\tby {response.url}')
-            if (query.hits == 0): return 
-            if (query.hits > query.hit_cap): yield scrapy.Request(query.refine(), callback=self.parse, dont_filter=True)
+            if (query.hits == 0 and query.price_from is None and query.price_to is None): return
+            elif (query.hits == 0): yield scrapy.Request(query.refine(), callback=self.parse, dont_filter=True)
+            elif (query.hits > query.hit_cap): yield scrapy.Request(query.refine(), callback=self.parse, dont_filter=True)
             else:
                 self.result.hits += query.hits
                 self.add_query(response, query)

@@ -40,14 +40,16 @@ class Query:
         else:
             price_range = self.price_to - self.price_from
             divider = self.__get_divider(price_range)
-            self.query['priceto'] = [str(math.floor((self.price_from + self.price_to) / divider))]
+            new_price_to = math.floor((self.price_from + self.price_to) / divider)
+            if (self.price_from >= new_price_to): new_price_to = math.floor((self.price_from + self.price_to) / 2)
+            self.query['priceto'] = [str(new_price_to)]
         return self.__compose_new_url()
 
     def __refine_upper(self):
         if self.price_to is None: self.query['pricefrom'] = [str(self.price_from * 2)]
         else:
             self.query['pricefrom'] = [str(self.price_to + 1)]
-            self.query.pop('priceto')
+            if (self.query.get('priceto')): self.query.pop('priceto')
         return self.__compose_new_url()
 
     def __get_divider(self, price_range: int):
