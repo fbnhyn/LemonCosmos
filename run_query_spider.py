@@ -33,9 +33,6 @@ def run():
     runner = CrawlerRunner()
     query_jobs = []
 
-    # m = service.get_maker_by_id("51817")
-    # for maker in [m]:
-
     for maker in makers:
         query_jobs.append({
             'maker_id': maker.get('id'),

@@ -64,6 +64,11 @@ class CosmosService:
         }
         self.upsert_maker(maker)
 
+    def mark_as_crawled(self, makerid):
+        maker = self.get_maker_by_id(makerid)
+        maker['query']['crawled'] = True
+        self.upsert_maker(maker)
+
     def get_all_maker_names(self):
         for m in self.makers_models_container.query_items(
                 query='SELECT m.name FROM makers m',
@@ -75,3 +80,20 @@ class CosmosService:
                 query='SELECT * FROM makers m',
                 enable_cross_partition_query=True):
             yield m
+
+    def get_makers_to_crawl(self):
+        for m in self.makers_models_container.query_items(
+                query='''
+                SELECT m.id FROM makers m
+                WHERE m.query.crawled = false AND m.query.hits > 0
+                ORDER BY m.query.time''',
+                enable_cross_partition_query=True):
+            yield m
+
+    def get_urls_by_maker(self, maker_id):
+        makers = list(self.makers_models_container.query_items(
+            query=f'''
+            SELECT m.id, m.name, m.query FROM makers m
+            WHERE m.id = "{maker_id}"''',
+            enable_cross_partition_query=True))
+        return makers[0]
