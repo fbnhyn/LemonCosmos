@@ -20,6 +20,7 @@ class ModelSpider(scrapy.Spider):
         xml = lxml.etree.tostring(js2xml.parse(script), encoding='unicode')
         selector = scrapy.Selector(text=xml)
         models = selector.css('property[name="availableModelModelLines"] > array > object')
+        
         # create result dict containing all models for one maker
         # in order to be able to update the maker later, the makerid must be part of the result dict
         result = {

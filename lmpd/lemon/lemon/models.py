@@ -1,9 +1,9 @@
 from datetime import datetime
+import logging
 import math
 from urllib import parse
 
 import scrapy.http
-import sys
 
 class Query:
     max_price = 999999999
@@ -19,7 +19,7 @@ class Query:
         self.price_to: int = int(self.query.get('priceto')[0]) if self.query.get('priceto') is not None else None
         self.hits: int = hits
 
-    def refine_query(self):
+    def refine(self):
         if self.price_from is None and self.price_to is None:
             self.query['pricefrom'] = [str(self.min_price)]
             self.query['priceto'] = [str(self.first_price_cap)]
@@ -28,7 +28,7 @@ class Query:
             return self.__refine_lower_query()
         return self.__refine_upper_query()
 
-    def has_upper_query(self):
+    def has_upper(self):
         if self.price_to is None and self.hits <= 200:
             return False
         if self.price_to == self.max_price:

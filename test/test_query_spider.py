@@ -10,34 +10,34 @@ class TestQuerySpider(unittest.TestCase):
     def test_add_price_range_to_url(self):
         response = scrapy.http.Response(url="https://www.autoscout24.de/lst/maker/model?cy=D")
         query = Query(response, 800)
-        refined_url = query.refine_query()
+        refined_url = query.refine()
         self.assertTrue("priceto" in refined_url)
         self.assertTrue("pricefrom" in refined_url)
 
     def test_refine_lower_query(self):
         response = scrapy.http.Response(url="https://www.autoscout24.de/lst/maker/model?cy=D&pricefrom=200&priceto=1000")
         query = Query(response, 800)
-        refined_url = query.refine_query()
+        refined_url = query.refine()
         self.assertTrue("priceto=600" in refined_url)
         self.assertTrue("?cy=D" in refined_url)
 
     def test_has_offer_param(self):
         response = scrapy.http.Response(url="https://www.autoscout24.de/lst/maker/model?offer=u&cy=D&pricefrom=200&priceto=1000")
         query = Query(response, 150)
-        refined_url = query.refine_query()
+        refined_url = query.refine()
         self.assertTrue("offer" in refined_url)
 
     def test_refine_upper_query(self):
         response = scrapy.http.Response(url="https://www.autoscout24.de/lst/maker/model?cy=D&pricefrom=200&priceto=1000")
         query = Query(response, 100)
-        refined_url = query.refine_query()
+        refined_url = query.refine()
         self.assertFalse("priceto" in refined_url)
         self.assertTrue(f"pricefrom={query.price_to + 1}" in refined_url)
 
     def test_refine_upper_query_false_all_in_one_query(self):
         response = scrapy.http.Response(url="https://www.autoscout24.de/lst/maker/model?cy=D")
         query = Query(response, 100)
-        self.assertFalse(query.has_upper_query())
+        self.assertFalse(query.has_upper())
 
     def test_init_price_to_has_value(self):
         response = scrapy.http.Response(url="https://www.autoscout24.de/lst/maker/model?cy=D&priceto=500")
@@ -57,12 +57,12 @@ class TestQuerySpider(unittest.TestCase):
     def test_has_upper_query_true(self):
         response = scrapy.http.Response(url="https://www.autoscout24.de/lst/maker/model?cy=D&pricefrom=1000&priceto=5000")
         query = Query(response, 100)
-        self.assertTrue(query.has_upper_query())
+        self.assertTrue(query.has_upper())
 
     def test_has_upper_query_false(self):
         response = scrapy.http.Response(url="https://www.autoscout24.de/lst/maker/model?cy=D&pricefrom=1000&priceto=999999999")
         query = Query(response, 100)
-        self.assertFalse(query.has_upper_query())
+        self.assertFalse(query.has_upper())
 
 if __name__ == '__main__':
     unittest.main()
