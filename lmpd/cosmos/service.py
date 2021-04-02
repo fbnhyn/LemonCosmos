@@ -48,15 +48,14 @@ class CosmosService:
             enable_cross_partition_query=True))
         return makers[0].get('m')
 
-    def append_query_result_to_maker(self, makerId, query_result: QueryResult):
+    def update_maker_query(self, makerId, query_result: QueryResult):
         maker = self.get_maker_by_id(makerId)
-        if maker.get('query_results') is None:
-            maker['query_results'] = []
-        maker['query_results'].append({
+        maker["query"] = {
+            'crawled': False,
             'hits': query_result.hits,
-            'urls': query_result.urls,
-            'time': query_result.time
-        })
+            'time': query_result.time,
+            'urls': query_result.urls
+        }
         self.upsert_maker(maker)
 
     def get_all_maker_names(self):

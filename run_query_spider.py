@@ -31,16 +31,19 @@ def run():
     makers = list(service.get_all_makers())
 
     runner = CrawlerRunner()
-    lemon_spider_jobs = []
+    query_jobs = []
 
-    for maker in any(m.get('id') == "74" for m in makers):
-        lemon_spider_jobs.append({
+    m = service.get_maker_by_id("27")
+
+    for maker in [m]:
+    # for maker in makers:
+        query_jobs.append({
             'maker_id': maker.get('id'),
             'maker': maker.get('name'),
-            'query_urls': build_start_urls(maker)
+            'start_urls': build_start_urls(maker)
         })
 
-    crawl(lemon_spider_jobs, runner, service)
+    crawl(query_jobs, runner, service)
     reactor.run()
 
 @defer.inlineCallbacks
@@ -50,8 +53,8 @@ def crawl(lemon_spider_jobs, runner: CrawlerRunner, service: CosmosService):
         QuerySpider.result.hits = 0
         QuerySpider.result.urls = []
         QuerySpider.result.time = datetime.now().isoformat()
-        yield runner.crawl(QuerySpider, start_urls=job.get('query_urls'))
-        # service.append_query_result_to_maker(job.get('maker_id'), QuerySpider.result)
+        yield runner.crawl(QuerySpider, start_urls=job.get('start_urls'))
+        service.update_maker_query(job.get('maker_id'), QuerySpider.result)
         print(f'--- {job.get("maker")}: {QuerySpider.result.hits} ---')
     reactor.stop()
 
