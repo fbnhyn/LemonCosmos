@@ -8,16 +8,13 @@ from scrapy.crawler import CrawlerRunner
 
 def run():
     service = CosmosService()
-    maker_ids = list(service.get_makers_to_crawl())
+    makers = list(service.get_makers_to_crawl())
 
     runner = CrawlerRunner()
     query_jobs = []
 
-    # m = service.get_maker_by_id("27")
-    # for maker in [m]:
-
-    for maker_id in maker_ids:
-        maker = service.get_urls_by_maker(maker_id)
+    for m in makers:
+        maker = service.get_urls_by_maker(m.get('id'))
         makerQuery = maker.get('query')
         query_jobs.append({
             'maker_id': maker.get('id'),

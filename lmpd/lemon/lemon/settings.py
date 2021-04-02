@@ -12,7 +12,6 @@ BOT_NAME = 'lemon'
 SPIDER_MODULES = ['lemon.spiders']
 NEWSPIDER_MODULE = 'lemon.spiders'
 
-
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 #USER_AGENT = 'lemon (+http://www.yourdomain.com)'
 
@@ -20,7 +19,7 @@ NEWSPIDER_MODULE = 'lemon.spiders'
 ROBOTSTXT_OBEY = True
 
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
-#CONCURRENT_REQUESTS = 32
+CONCURRENT_REQUESTS = 32
 
 # Configure a delay for requests for the same website (default: 0)
 # See https://docs.scrapy.org/en/latest/topics/settings.html#download-delay
