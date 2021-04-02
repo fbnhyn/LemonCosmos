@@ -60,6 +60,7 @@ class Query:
         return parse.urlunparse(self.parsed_url)
 
 class QueryResult:
+    crawled: bool
     urls: list
     hits: int
     time: datetime

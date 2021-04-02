@@ -1,5 +1,6 @@
 from datetime import datetime
 import json
+import sys
 from lmpd.lemon.lemon.models import QueryResult
 import os
 from azure.cosmos import CosmosClient, PartitionKey
@@ -30,8 +31,13 @@ class CosmosService:
             id=_makers_models_container_name, partition_key=PartitionKey(path=self.makers_models_pk)
         )
 
-    def insert_lemon(self, json):
-        self.lemons_container.create_item(json)
+    def upsert_lemon(self, lemon):
+        try:
+            self.lemons_container.upsert_item(body=lemon)
+            print(f'{lemon.get("id")} upserted')
+        except:
+            e = sys.exc_info()
+            print(f'EXCEPTION {e[1]}')
 
     def insert_maker(self, json):
         self.makers_models_container.create_item(json)

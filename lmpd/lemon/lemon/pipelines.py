@@ -12,7 +12,7 @@ class CosmosPipeline():
 class LemonPipeline(CosmosPipeline):
 
     def process_item(self, item, spider):
-        self.service.insert_lemon(ItemAdapter(item).asdict())
+        self.service.upsert_lemon(ItemAdapter(item).asdict())
 
 class MakersPipeline(CosmosPipeline):
 
