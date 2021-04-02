@@ -41,7 +41,7 @@ def string_after_dash(value: str):
     return value.split()[-1]
 
 def string_year_to_date(value: str):
-    return datetime.strptime(value, '%Y')
+    return datetime.strptime(value, '%Y').isoformat()
 
 
 class EquipmentItem(scrapy.Item): 
@@ -296,7 +296,9 @@ class LemonItem(scrapy.Item):
     fullservice = scrapy.Field(
         output_processor=TakeFirst()
     )
-    warranty = scrapy.Field()
+    warrenty = scrapy.Field(
+        output_processor=TakeFirst()
+    )
     #endregion
 
     #region Drive
