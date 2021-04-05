@@ -1,33 +1,42 @@
-from scrapy.http.response.text import TextResponse
-from lmpd.lemon.lemon import models
+import sys
 import scrapy
 import logging
 import math
-import sys
+import traceback
+
+from scrapy.http.response.text import TextResponse
+from lmpd.lemon.lemon import models
 
 class QuerySpider(scrapy.Spider):
-    name = 'querySpider'
+    name = 'QuerySpider'
     allowed_domains = ['autoscout24.de']
     result = models.QueryResult()
 
-    def parse(self, response):
+    custom_settings = {
+        'CONCURRENT_REQUESTS': 64
+    }
+
+    def __init__(self, *a, **kw):
+        self.logger.setLevel(logging.INFO)
+        super().__init__(*a, **kw)
+
+    def parse(self, response: TextResponse):
         try:
-            self.logger.info(response.url)
             query = models.Query(response, self.parse_query_result(response))
-            print(f'{query.hits}\tby {response.url}')
+            self.logger.info(f'{query.hits: < 10} by {response.url}')
             if (query.hits == 0 and query.price_from is None and query.price_to is None): return
             elif (query.hits == 0): yield scrapy.Request(query.refine(), callback=self.parse, dont_filter=True)
             elif (query.hits > query.hit_cap): yield scrapy.Request(query.refine(), callback=self.parse, dont_filter=True)
             else:
                 self.result.hits += query.hits
                 self.add_query(response, query)
-                print(f'[{self.result.hits}]')
+                self.logger.info(f'{self.result.hits: < 10} hits in total')
                 if query.has_upper(): yield scrapy.Request(query.refine(), callback=self.parse, dont_filter=True)
         except AttributeError:
+            self.logger.warn(f'{response.url} did not contain any valid html')
             yield scrapy.Request(response.url, callback=self.parse, dont_filter=True)
         except:
-            e = sys.exc_info()
-            print(f'EXCEPTION {e[1]}')
+            self.logger.error(traceback.format_exc())
 
     def parse_query_result(self, response: TextResponse):
         hasEmptyTitleClass = len(response.css('.cl-list-header-title-empty')) > 0

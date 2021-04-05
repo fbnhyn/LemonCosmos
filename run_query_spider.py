@@ -1,5 +1,5 @@
-from datetime import datetime
 import logging
+from datetime import datetime
 from lmpd.lemon.lemon.spiders.query_spider import QuerySpider
 from urllib.parse import quote
 
@@ -31,11 +31,11 @@ def run():
     logging.basicConfig(
         filename='Logs\\query.log',
         level=logging.ERROR,
-        format='%(asctime)s %(levelname)-8s %(message)s',
+        format='%(asctime)s: %(name)s: %(levelname)s: %(message)s',
         datefmt='%Y-%m-%d %H:%M:%S',
         filemode='w')
 
-    logger = logging.getLogger('RunQuerySpider')
+    logger = logging.getLogger("RunQuerySpider")
     logger.setLevel(logging.INFO)
 
     service = CosmosService()

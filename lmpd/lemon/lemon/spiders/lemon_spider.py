@@ -1,8 +1,10 @@
-from datetime import datetime
+import logging
 import sys
+import traceback
 
-from scrapy.http.response.text import TextResponse
 from lmpd.lemon.lemon.items import AdressItem, ConsumptionItem, EmissionItem, LemonItem, PriceLabelRangesItem, PriceRangeItem
+from datetime import datetime
+from scrapy.http.response.text import TextResponse
 from scrapy.spiders import CrawlSpider, Rule
 from scrapy.linkextractors import LinkExtractor
 from scrapy.loader import ItemLoader
@@ -14,16 +16,23 @@ class LemonSpider(CrawlSpider):
     custom_settings = {
         'ITEM_PIPELINES': {
             'lmpd.lemon.lemon.pipelines.LemonPipeline': 100
-        }
+        },
+        'LOG_FILE' : '..\\..\\Logs\\lemons.log',
+        'CONCURRENT_REQUESTS': 64
     }
 
     rules = [
         Rule(LinkExtractor(allow='angebote/', deny='leasing'), callback='parse_lemon', follow=False),
     ]
 
-    def parse_lemon(self, response):
+    def __init__(self, *a, **kw):
+        self.logger.setLevel(logging.INFO)
+        super().__init__(*a, **kw)
+
+    def parse_lemon(self, response: TextResponse):
         try:
-            if (response.css('.cldt-item[data-item-name="car-details"]')):
+            if (response.status != 200): self.logger.error(f'{response.url} was {response.status}')
+            elif (response.css('.cldt-item[data-item-name="car-details"]')):
                 l = ItemLoader(item=LemonItem(), selector=response)
                 l.add_css('id', "[as24-tracking-value*='classified_productGuid']::attr('as24-tracking-value')")
                 l.add_css('origin', "[as24-tracking-value*='classified_origin']::attr('as24-tracking-value')")
@@ -65,12 +74,12 @@ class LemonSpider(CrawlSpider):
                 l.add_value('emissions', self.parse_emissions(response))
                 l.add_value('consumption', self.parse_consumption(response))
                 l.add_value('adress', self.parse_adress(response))
-                l.add_value('crawled', datetime.now().time().isoformat())
+                l.add_value('crawled', datetime.now().isoformat())
                 l.add_value('url', response.url)
                 yield l.load_item()
+            else: self.logger.warn(f'{response.url} was {response.status} but did not contain [.cldt-item[data-item-name="car-details"]')
         except:
-            e = sys.exc_info()
-            print(f'EXCEPTION {e[1]}')
+            self.logger.error(traceback.format_exc())
 
     def parse_adress(self, response):
         a = ItemLoader(item=AdressItem(), selector=response)

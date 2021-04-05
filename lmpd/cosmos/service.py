@@ -1,15 +1,11 @@
 import logging
-import sys
 import traceback
+import os
 
 from azure.cosmos.exceptions import CosmosResourceExistsError
 from lmpd.lemon.lemon.models import QueryResult
-import os
 from azure.cosmos import CosmosClient, PartitionKey
-from azure.cosmos.container import ContainerProxy
 from dotenv import load_dotenv
-
-
 
 class CosmosService:
 
@@ -22,7 +18,7 @@ class CosmosService:
         _makers_models_container_name = os.getenv('CONTAINER_MAKERS_NAME')
 
         self.logger = logging.getLogger('CosmosService')
-        self.logger.setLevel(logging.INFO)
+        self.logger.setLevel(logging.ERROR)
 
         self.lemons_pk = os.getenv('CONTAINER_LEMONS_PARTITIONKEY')
         self.makers_models_pk = os.getenv('CONTAINER_MAKERS_PARTITIONKEY')

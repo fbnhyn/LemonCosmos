@@ -1,24 +1,22 @@
-import logging
-from itemadapter.adapter import ItemAdapter
+import sys
 import scrapy
 import lxml.etree
 import js2xml
 import lmpd.lemon.lemon.items as lmpd
+import logging
+from itemadapter.adapter import ItemAdapter
 from scrapy.loader import ItemLoader
 
 class ModelSpider(scrapy.Spider):
-    name = 'modelspider'
+    name = 'ModelSpider'
     allowed_domains = ['autoscout24.de']
 
     custom_settings = {
         'ITEM_PIPELINES': {
             'lmpd.lemon.lemon.pipelines.ModelsPipeline': 100
-        }
+        },
+        'CONCURRENT_REQUESTS': 32
     }
-
-    def __init__(self, *a, **kw):
-        self.logger.setLevel(logging.INFO)
-        super().__init__(*a, **kw)
 
     def parse(self, response):
         script = response.xpath("//script[contains(text(), 'window.As24ClassifiedList')]/text()").extract_first()
