@@ -18,7 +18,7 @@ class CosmosService:
         _makers_models_container_name = os.getenv('CONTAINER_MAKERS_NAME')
 
         self.logger = logging.getLogger('CosmosService')
-        self.logger.setLevel(logging.ERROR)
+        self.logger.setLevel(logging.INFO)
 
         self.lemons_pk = os.getenv('CONTAINER_LEMONS_PARTITIONKEY')
         self.makers_models_pk = os.getenv('CONTAINER_MAKERS_PARTITIONKEY')

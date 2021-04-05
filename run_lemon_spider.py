@@ -5,12 +5,11 @@ from scrapy.crawler import CrawlerRunner
 from lmpd.lemon.lemon.spiders.lemon_spider import LemonSpider
 from lmpd.cosmos.service import CosmosService
 
-
 def run():
     logging.basicConfig(
         filename='Logs\\lemons.log',
         level=logging.ERROR,
-        format='%(asctime)s %(levelname)-8s %(message)s',
+        format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
         datefmt='%Y-%m-%d %H:%M:%S',
         filemode='w')
 
@@ -21,6 +20,7 @@ def run():
     runner = CrawlerRunner()
 
     makers = service.get_makers_to_crawl()
+
     query_jobs = []
 
     for m in makers:

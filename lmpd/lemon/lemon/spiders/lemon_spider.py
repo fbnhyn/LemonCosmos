@@ -17,7 +17,6 @@ class LemonSpider(CrawlSpider):
         'ITEM_PIPELINES': {
             'lmpd.lemon.lemon.pipelines.LemonPipeline': 100
         },
-        'LOG_FILE' : '..\\..\\Logs\\lemons.log',
         'CONCURRENT_REQUESTS': 64
     }
 
