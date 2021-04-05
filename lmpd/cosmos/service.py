@@ -1,11 +1,15 @@
-from datetime import datetime
-import json
+import logging
 import sys
+import traceback
+
+from azure.cosmos.exceptions import CosmosResourceExistsError
 from lmpd.lemon.lemon.models import QueryResult
 import os
 from azure.cosmos import CosmosClient, PartitionKey
 from azure.cosmos.container import ContainerProxy
 from dotenv import load_dotenv
+
+
 
 class CosmosService:
 
@@ -16,6 +20,9 @@ class CosmosService:
         _db_name = os.getenv('DATABASE_NAME')
         _lemons_container_name = os.getenv('CONTAINER_LEMONS_NAME')
         _makers_models_container_name = os.getenv('CONTAINER_MAKERS_NAME')
+
+        self.logger = logging.getLogger('CosmosService')
+        self.logger.setLevel(logging.INFO)
 
         self.lemons_pk = os.getenv('CONTAINER_LEMONS_PARTITIONKEY')
         self.makers_models_pk = os.getenv('CONTAINER_MAKERS_PARTITIONKEY')
@@ -34,25 +41,33 @@ class CosmosService:
     def upsert_lemon(self, lemon):
         try:
             self.lemons_container.upsert_item(body=lemon)
-            print(f'{lemon.get("id")} upserted')
+            self.logger.info(f'Upserted {lemon.get("make_name")}\t{lemon.get("model_name")}\t{lemon.get("id")}')
         except:
-            e = sys.exc_info()
-            print(f'EXCEPTION {e[1]}')
+            self.logger.error(traceback.format_exc())
 
-    def insert_maker(self, json):
-        self.makers_models_container.create_item(json)
+    def insert_maker(self, maker):
+        try:
+            self.makers_models_container.create_item(maker)
+            self.logger.info(f'''Added new maker
+            {maker}''')
+        except CosmosResourceExistsError:
+            self.logger.info(f'Maker {maker["name"]} already exists')
+        except: 
+            self.logger.error(traceback.format_exc())
 
     def upsert_maker(self, maker):
         try:
             self.makers_models_container.upsert_item(body=maker)
+            self.logger.info(f'''Added new models for {maker["name"]}
+            {maker["models"]}''')
         except:
-            print(f'error while upserting maker {maker.get("makerId")}')
+            self.logger.error(traceback.format_exc())
 
     def get_maker_by_id(self, makerId):
-        makers = list(self.makers_models_container.query_items(
-            query= f'SELECT TOP 1 m FROM makers m WHERE m.id = "{makerId}"',
+        maker = list(self.makers_models_container.query_items(
+            query= f'SELECT * FROM m WHERE m.id = "{makerId}"',
             enable_cross_partition_query=True))
-        return makers[0].get('m')
+        return maker[0]
 
     def update_maker_query(self, makerId, query_result: QueryResult):
         maker = self.get_maker_by_id(makerId)
@@ -68,6 +83,7 @@ class CosmosService:
         maker = self.get_maker_by_id(makerid)
         maker['query']['crawled'] = True
         self.upsert_maker(maker)
+        self.logger.info(f'Marked {maker.get("name")} as crawled')
 
     def get_all_maker_names(self):
         for m in self.makers_models_container.query_items(

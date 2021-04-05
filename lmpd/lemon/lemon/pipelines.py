@@ -2,6 +2,9 @@
 #
 # Don't forget to add your pipeline to the ITEM_PIPELINES setting
 # See: https://docs.scrapy.org/en/latest/topics/item-pipeline.html
+import logging
+import sys
+from typing import Dict
 from itemadapter import ItemAdapter
 from lmpd.cosmos.service import CosmosService
 from azure.cosmos.exceptions import CosmosResourceExistsError
@@ -17,30 +20,24 @@ class LemonPipeline(CosmosPipeline):
 class MakersPipeline(CosmosPipeline):
 
     def process_item(self, item, spider):
-        try:
-            self.service.insert_maker(ItemAdapter(item).asdict())
-        except CosmosResourceExistsError:
-            print(f'Maker {item.get("name")} with id {item.get("id")} already exists')
+        self.service.insert_maker(ItemAdapter(item).asdict())
 
 class ModelsPipeline(CosmosPipeline):
 
-    def process_item(self, item, spider):
+    def process_item(self, maker: Dict, spider):
         update_maker = False
-        maker = self.service.get_maker_by_id(item.get('maker_id'))
+        maker = self.service.get_maker_by_id(maker.get('maker_id'))
         maker_models = maker.get('models')
-        scraped_models = item.get('models')
+        scraped_models = maker.get('models')
 
         if maker_models is None:
             maker_models = []
 
-        for sm in scraped_models:
-            if not any(m.get('id') == sm.get('id') for m in maker_models):
-                maker_models.append(sm)
+        for model in scraped_models:
+            if not any(m.get('id') == model.get('id') for m in maker_models):
+                maker_models.append(model)
                 update_maker = True
 
         if update_maker:
             maker['models'] = maker_models
             self.service.upsert_maker(maker)
-            print(f"Scraped new models for maker {item.get('maker_id')}")
-        else:
-            print(f"No new models for maker {item.get('maker_id')}")

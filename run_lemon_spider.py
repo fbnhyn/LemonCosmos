@@ -1,16 +1,26 @@
-from datetime import datetime
-from logging import NOTSET
-from lmpd.lemon.lemon.spiders.lemon_spider import LemonSpider
+import logging
 
 from twisted.internet import defer, reactor
-from lmpd.cosmos.service import CosmosService
 from scrapy.crawler import CrawlerRunner
+from lmpd.lemon.lemon.spiders.lemon_spider import LemonSpider
+from lmpd.cosmos.service import CosmosService
+
 
 def run():
-    service = CosmosService()
-    makers = list(service.get_makers_to_crawl())
+    logging.basicConfig(
+        filename='Logs\\lemons.log',
+        level=logging.ERROR,
+        format='%(asctime)s %(levelname)-8s %(message)s',
+        datefmt='%Y-%m-%d %H:%M:%S',
+        filemode='w')
 
+    logger = logging.getLogger('RunLemonSpider')
+    logger.setLevel(logging.INFO)
+
+    service = CosmosService()
     runner = CrawlerRunner()
+
+    makers = service.get_makers_to_crawl()
     query_jobs = []
 
     for m in makers:
@@ -22,16 +32,15 @@ def run():
             'start_urls': makerQuery.get('urls')
         })
     
-    crawl(query_jobs, runner, service)
+    crawl(query_jobs, logger, runner, service)
     reactor.run()
 
 @defer.inlineCallbacks
-def crawl(query_job, runner: CrawlerRunner, service: CosmosService):
+def crawl(query_job, logger:logging.Logger, runner: CrawlerRunner, service: CosmosService):
     for job in query_job:
-        print(f'### {job.get("maker")} ###')
+        logger.info(f'Starting crawling for {job.get("maker")}')
         yield runner.crawl(LemonSpider, start_urls=job.get('start_urls'))
         service.mark_as_crawled(job.get('maker_id'))
-        print(f'--- {job.get("maker")} ---')
     reactor.stop()
 
 if __name__ == '__main__': run()

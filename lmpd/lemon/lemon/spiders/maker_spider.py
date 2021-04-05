@@ -1,3 +1,4 @@
+import logging
 import scrapy
 import lxml.etree
 import js2xml
@@ -14,6 +15,10 @@ class MakerSpider(scrapy.Spider):
             'lmpd.lemon.lemon.pipelines.MakersPipeline': 100
         }
     }
+
+    def __init__(self, *a, **kw):
+        self.logger.setLevel(logging.INFO)
+        super().__init__(*a, **kw)
 
     def parse(self, response):
         script = response.xpath("//script[contains(text(), 'window.As24HomeTabsConfig')]/text()").extract_first()

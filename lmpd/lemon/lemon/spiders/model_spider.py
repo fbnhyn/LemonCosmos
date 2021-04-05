@@ -1,3 +1,4 @@
+import logging
 from itemadapter.adapter import ItemAdapter
 import scrapy
 import lxml.etree
@@ -14,6 +15,10 @@ class ModelSpider(scrapy.Spider):
             'lmpd.lemon.lemon.pipelines.ModelsPipeline': 100
         }
     }
+
+    def __init__(self, *a, **kw):
+        self.logger.setLevel(logging.INFO)
+        super().__init__(*a, **kw)
 
     def parse(self, response):
         script = response.xpath("//script[contains(text(), 'window.As24ClassifiedList')]/text()").extract_first()
