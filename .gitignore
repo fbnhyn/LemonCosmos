@@ -1,5 +1,8 @@
+#Folders
 .vscode
 __pycache__
-
 .env
 .pyc
+
+#Files
+*.log
