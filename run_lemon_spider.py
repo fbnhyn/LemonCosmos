@@ -7,9 +7,9 @@ from lmpd.cosmos.service import CosmosService
 
 def run():
     logging.basicConfig(
-        filename='Logs\\lemons.log',
+        filename='Logs/lemons.log',
         level=logging.ERROR,
-        format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
+        format='%(asctime)s %(name)-12s %(levelname)-12s %(message)s',
         datefmt='%Y-%m-%d %H:%M:%S',
         filemode='w')
 

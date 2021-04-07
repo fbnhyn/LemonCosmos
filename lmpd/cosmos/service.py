@@ -37,7 +37,7 @@ class CosmosService:
     def upsert_lemon(self, lemon):
         try:
             self.lemons_container.upsert_item(body=lemon)
-            self.logger.info(f'Upserted {lemon.get("make_name")}\t{lemon.get("model_name")}\t{lemon.get("id")}')
+            self.logger.info(f'Upserted {lemon.get("make_name"): <12}{lemon.get("model_name"): <12} {lemon.get("id")}')
         except:
             self.logger.error(traceback.format_exc())
 
@@ -54,8 +54,8 @@ class CosmosService:
     def upsert_maker(self, maker):
         try:
             self.makers_models_container.upsert_item(body=maker)
-            self.logger.info(f'''Added new models for {maker["name"]}
-            {maker["models"]}''')
+            self.logger.info(f'''Updated maker
+            {maker}''')
         except:
             self.logger.error(traceback.format_exc())
 
