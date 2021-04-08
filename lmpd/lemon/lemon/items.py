@@ -227,11 +227,11 @@ class LemonItem(scrapy.Item):
     #endregion
 
     # Properties
-    make_id = scrapy.Field(
+    maker_id = scrapy.Field(
         input_processor=MapCompose(return_dict_value),
         output_processor=TakeFirst()
     )
-    make_name =scrapy.Field(
+    maker =scrapy.Field(
         input_processor=MapCompose(return_dict_value),
         output_processor=TakeFirst()
     )
@@ -239,7 +239,7 @@ class LemonItem(scrapy.Item):
         input_processor=MapCompose(return_dict_value),
         output_processor=TakeFirst()
     )
-    model_name = scrapy.Field(
+    model = scrapy.Field(
         input_processor=MapCompose(return_dict_value),
         output_processor=TakeFirst()
     )

@@ -1,4 +1,5 @@
 import logging
+import sys
 import traceback
 import os
 
@@ -37,9 +38,18 @@ class CosmosService:
     def upsert_lemon(self, lemon):
         try:
             self.lemons_container.upsert_item(body=lemon)
-            self.logger.info(f'Upserted {lemon.get("make_name"): <12}{lemon.get("model_name"): <12} {lemon.get("id")}')
+            self.logger.info(f'Upserted {lemon.get("maker"): <12}{lemon.get("model"): <12} {lemon.get("id")}')
         except:
             self.logger.error(traceback.format_exc())
+
+    def insert_lemon(self, lemon):
+        try:
+            self.lemons_container.create_item(body=lemon)
+            self.logger.info(f'Upserted {lemon.get("maker"): <12}{lemon.get("model"): <12} {lemon.get("id")}')
+        except CosmosResourceExistsError:
+            self.logger.info(f'{lemon.get("id")} already exists')
+            self.logger.info(f'Stop process')
+            sys.exit()
 
     def insert_maker(self, maker):
         try:
@@ -60,10 +70,9 @@ class CosmosService:
             self.logger.error(traceback.format_exc())
 
     def get_maker_by_id(self, makerId):
-        maker = list(self.makers_models_container.query_items(
+        return self.makers_models_container.query_items(
             query= f'SELECT * FROM m WHERE m.id = "{makerId}"',
-            enable_cross_partition_query=True))
-        return maker[0]
+            enable_cross_partition_query=True)[0]
 
     def update_maker_query(self, makerId, query_result: QueryResult):
         maker = self.get_maker_by_id(makerId)
@@ -79,7 +88,6 @@ class CosmosService:
         maker = self.get_maker_by_id(makerid)
         maker['query']['crawled'] = True
         self.upsert_maker(maker)
-        self.logger.info(f'Marked {maker.get("name")} as crawled')
 
     def get_all_maker_names(self):
         for m in self.makers_models_container.query_items(
@@ -93,14 +101,21 @@ class CosmosService:
                 enable_cross_partition_query=True):
             yield m
 
+    def get_all_maker_ids(self):
+        for m in self.makers_models_container.query_items(
+                query='SELECT m.id FROM makers m',
+                enable_cross_partition_query=True):
+            yield m
+
     def get_makers_to_crawl(self):
         for m in self.makers_models_container.query_items(
                 query='''
                 SELECT m.id FROM makers m
-                WHERE m.query.crawled = false AND m.query.hits > 0
+                WHERE m.query.crawled = false
                 ORDER BY m.query.time''',
                 enable_cross_partition_query=True):
             yield m
+
 
     def get_urls_by_maker(self, maker_id):
         makers = list(self.makers_models_container.query_items(
