@@ -6,11 +6,11 @@ from lmpd.cosmos.service import CosmosService
 
 def run():
     logging.basicConfig(
-        filename='Logs\\models.log',
+        filename='Logs/models.log',
         level=logging.ERROR,
-        format='%(asctime)s %(levelname)-4s %(message)s',
+        format='%(asctime)s %(name)-12s %(levelname)-12s %(message)s',
         datefmt='%Y-%m-%d %H:%M:%S',
-        filemode='w')
+        filemode='a')
 
     logger = logging.getLogger('RunModelSpider')
     logger.setLevel(logging.ERROR)

@@ -1,4 +1,5 @@
 import logging
+import traceback
 
 from twisted.internet import defer, reactor
 from scrapy.crawler import CrawlerRunner
@@ -11,7 +12,7 @@ def run():
         level=logging.ERROR,
         format='%(asctime)s %(name)-12s %(levelname)-12s %(message)s',
         datefmt='%Y-%m-%d %H:%M:%S',
-        filemode='w')
+        filemode='a')
 
     logger = logging.getLogger('RunLemonSpider')
     logger.setLevel(logging.INFO)
@@ -19,28 +20,22 @@ def run():
     service = CosmosService()
     runner = CrawlerRunner()
 
-    makers = service.get_makers_to_crawl()
+    makers = service.get_maker_by_id("51539")
 
-    query_jobs = []
+    for maker in [makers]:
+        crawl(maker, logger, runner, service)
+        reactor.run()
 
-    for m in makers:
-        maker = service.get_urls_by_maker(m.get('id'))
-        makerQuery = maker.get('query')
-        query_jobs.append({
-            'maker_id': maker.get('id'),
-            'maker': maker.get('name'),
-            'start_urls': makerQuery.get('urls')
-        })
-    
-    crawl(query_jobs, logger, runner, service)
-    reactor.run()
 
 @defer.inlineCallbacks
-def crawl(query_job, logger:logging.Logger, runner: CrawlerRunner, service: CosmosService):
-    for job in query_job:
-        logger.info(f'Starting crawling for {job.get("maker")}')
-        yield runner.crawl(LemonSpider, start_urls=job.get('start_urls'))
-        service.mark_as_crawled(job.get('maker_id'))
-    reactor.stop()
+def crawl(maker, logger:logging.Logger, runner: CrawlerRunner, service: CosmosService):
+    try:
+        maker = service.get_urls_by_maker(maker.get('id'))
+        logger.info(f'Starting crawling for {maker.get("name")}')
+        yield runner.crawl(LemonSpider, start_urls=maker['query']['urls'])
+        service.mark_as_crawled(maker.get('name'))
+        reactor.stop()
+    except:
+        logger.error(traceback.format_exc())
 
 if __name__ == '__main__': run()
