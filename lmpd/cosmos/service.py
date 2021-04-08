@@ -11,15 +11,16 @@ from dotenv import load_dotenv
 class CosmosService:
 
     def __init__(self):
+        self.logger = logging.getLogger('CosmosService')
+        self.logger.setLevel(logging.INFO)
+
         load_dotenv()
+
         _endpoint = os.getenv('ENDPOINT')
         _key = os.getenv('KEY')
         _db_name = os.getenv('DATABASE_NAME')
         _lemons_container_name = os.getenv('CONTAINER_LEMONS_NAME')
         _makers_models_container_name = os.getenv('CONTAINER_MAKERS_NAME')
-
-        self.logger = logging.getLogger('CosmosService')
-        self.logger.setLevel(logging.INFO)
 
         self.lemons_pk = os.getenv('CONTAINER_LEMONS_PARTITIONKEY')
         self.makers_models_pk = os.getenv('CONTAINER_MAKERS_PARTITIONKEY')
@@ -38,14 +39,14 @@ class CosmosService:
     def upsert_lemon(self, lemon):
         try:
             self.lemons_container.upsert_item(body=lemon)
-            self.logger.info(f'Upserted {lemon.get("maker"): <12}{lemon.get("model"): <12} {lemon.get("id")}')
+            self.logger.info(f'Upserted {lemon.get("maker"): <16} {lemon.get("model"): <16} {lemon.get("id")}')
         except:
             self.logger.error(traceback.format_exc())
 
     def insert_lemon(self, lemon):
         try:
             self.lemons_container.create_item(body=lemon)
-            self.logger.info(f'Upserted {lemon.get("maker"): <12}{lemon.get("model"): <12} {lemon.get("id")}')
+            self.logger.info(f'Upserted {lemon.get("maker"): <16} {lemon.get("model"): <16} {lemon.get("id")}')
         except CosmosResourceExistsError:
             self.logger.info(f'{lemon.get("id")} already exists')
             self.logger.info(f'Stop process')
@@ -57,22 +58,21 @@ class CosmosService:
             self.logger.info(f'''Added new maker
             {maker}''')
         except CosmosResourceExistsError:
-            self.logger.info(f'Maker {maker["name"]} already exists')
+            self.logger.info(f'Maker {maker.get("name"): <16} already exists')
         except: 
             self.logger.error(traceback.format_exc())
 
     def upsert_maker(self, maker):
         try:
             self.makers_models_container.upsert_item(body=maker)
-            self.logger.info(f'''Updated maker
-            {maker}''')
+            self.logger.info(f'Updated maker {maker.get("name")}')
         except:
             self.logger.error(traceback.format_exc())
 
     def get_maker_by_id(self, makerId):
         return self.makers_models_container.query_items(
             query= f'SELECT * FROM m WHERE m.id = "{makerId}"',
-            enable_cross_partition_query=True)[0]
+            enable_cross_partition_query=True).next()
 
     def update_maker_query(self, makerId, query_result: QueryResult):
         maker = self.get_maker_by_id(makerId)

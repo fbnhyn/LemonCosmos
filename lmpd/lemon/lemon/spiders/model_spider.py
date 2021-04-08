@@ -2,6 +2,7 @@ import sys
 import scrapy
 import lxml.etree
 import js2xml
+from twisted.python.threadable import init
 import lmpd.lemon.lemon.items as lmpd
 import logging
 from itemadapter.adapter import ItemAdapter
@@ -15,8 +16,11 @@ class ModelSpider(scrapy.Spider):
         'ITEM_PIPELINES': {
             'lmpd.lemon.lemon.pipelines.ModelsPipeline': 100
         },
-        'CONCURRENT_REQUESTS': 32
     }
+
+    def __init__(self, *args, **kwargs):
+        logging.getLogger('scrapy').setLevel(logging.WARNING)
+        super().__init__(*args, **kwargs) 
 
     def parse(self, response):
         script = response.xpath("//script[contains(text(), 'window.As24ClassifiedList')]/text()").extract_first()

@@ -34,7 +34,7 @@ def run():
         level=logging.ERROR,
         format='%(asctime)s %(name)-12s %(levelname)-12s %(message)s',
         datefmt='%Y-%m-%d %H:%M:%S',
-        filemode='a')
+        filemode='w')
 
     logger = logging.getLogger("RunQuerySpider")
     logger.setLevel(logging.INFO)

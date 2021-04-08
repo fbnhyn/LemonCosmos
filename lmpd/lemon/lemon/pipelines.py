@@ -11,6 +11,7 @@ from azure.cosmos.exceptions import CosmosResourceExistsError
 
 class CosmosPipeline():
     service = CosmosService()
+    logger = logging.getLogger('CosmosPipeline')
 
 class LemonPipeline(CosmosPipeline):
 
@@ -35,9 +36,12 @@ class ModelsPipeline(CosmosPipeline):
 
         for model in scraped_models:
             if not any(m.get('id') == model.get('id') for m in maker_models):
+                self.logger.info(f'Added new model {model: <12} for {maker.get("name")}')
                 maker_models.append(model)
                 update_maker = True
 
         if update_maker:
             maker['models'] = maker_models
             self.service.upsert_maker(maker)
+        else:
+            self.logger.info(f'No new models for {maker.get("name")}')
