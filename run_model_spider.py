@@ -6,7 +6,6 @@ from lmpd.cosmos.service import CosmosService
 
 def run():
 
-
     logging.basicConfig(
         filename='Logs/models.log',
         level=logging.ERROR,
@@ -18,8 +17,10 @@ def run():
     logging.getLogger("urllib3").setLevel(logging.ERROR)
 
     logger = logging.getLogger('RunModelSpider')
-    logger.setLevel(logging.INFO)
+    logger.setLevel(logging.DEBUG)
 
+
+    logger.info('RUN')
     service = CosmosService()
     makers = service.get_all_maker_names()
     start_urls = []

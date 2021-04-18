@@ -40,13 +40,13 @@ def run():
     logger.setLevel(logging.INFO)
 
     service = CosmosService()
-    makers = service.get_maker_by_id(27)
+    makers = service.get_all_makers()
 
     runner = CrawlerRunner()
 
-    # for maker in makers:
-    crawl(makers, logger, runner, service)
-    reactor.run()
+    for maker in makers:
+        crawl(maker, logger, runner, service)
+        reactor.run()
 
 @defer.inlineCallbacks
 def crawl(maker, logger: logging.Logger, runner: CrawlerRunner, service: CosmosService):
@@ -64,9 +64,9 @@ def build_start_urls(maker):
     for m in maker.get('models'):
         if maker.get('is_top'):
             for c in countries:
-                urls.append(f'https://www.autoscout24.de/lst/{quote(maker.get("name"))}/{quote(m.get("name"))}?size=20&offer={",".join(offer_types)}&cy={c}')
+                urls.append(f'https://www.autoscout24.de/lst/{quote(maker.get("name"))}/{quote(m.get("name"))}?sort=age&size=20&offer={",".join(offer_types)}&cy={c}')
         else:
-            urls.append(f'https://www.autoscout24.de/lst/{quote(maker.get("name"))}/{quote(m.get("name"))}?size=20&offer={",".join(offer_types)}')
+            urls.append(f'https://www.autoscout24.de/lst/{quote(maker.get("name"))}/{quote(m.get("name"))}?sort=age&size=20&offer={",".join(offer_types)}')
     return urls
 
 if __name__ == '__main__': run()
